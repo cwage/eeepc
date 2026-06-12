@@ -101,6 +101,26 @@
       when: eeepc_lightdm_service_unit.stat.exists
       tags: [never, lightdm]
 
+    - name: Ensure LightDM drop-in config directory exists
+      file:
+        path: /etc/lightdm/lightdm.conf.d
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+      tags: [never, lightdm]
+
+    - name: Pin the default LightDM session to the EeePC Xsession
+      copy:
+        dest: /etc/lightdm/lightdm.conf.d/50-eeepc.conf
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          [Seat:*]
+          user-session={{ eeepc_default_session }}
+      tags: [never, lightdm]
+
     - name: Install wrapper that runs ~/.xsession through sh
       copy:
         dest: /usr/local/bin/eeepc-xsession
@@ -132,16 +152,16 @@
           Type=Application
       tags: [never, xsession]
 
-    - name: Check for dotfiles .xsession
+    - name: Check for dotfiles .xsession.eee
       stat:
-        path: "{{ eeepc_dotfiles_path }}/.xsession"
+        path: "{{ eeepc_xsession_source }}"
       become: false
       register: eeepc_dotfiles_xsession
       tags: [never, xsession]
 
-    - name: Link ~/.xsession to dotfiles
+    - name: Link ~/.xsession to the pared-down dotfiles session
       file:
-        src: "{{ eeepc_dotfiles_path }}/.xsession"
+        src: "{{ eeepc_xsession_source }}"
         dest: "/home/{{ eeepc_user }}/.xsession"
         state: link
         force: true
@@ -150,11 +170,67 @@
       when: eeepc_dotfiles_xsession.stat.exists
       tags: [never, xsession]
 
-    - name: Warn when dotfiles .xsession is missing
+    - name: Warn when dotfiles .xsession.eee is missing
       debug:
-        msg: "Dotfiles .xsession not found at {{ eeepc_dotfiles_path }}/.xsession; xsession wrapper will fall back to xterm."
+        msg: "Dotfiles session not found at {{ eeepc_xsession_source }}; the wrapper will fall back to xterm."
       when: not eeepc_dotfiles_xsession.stat.exists
       tags: [never, xsession]
+
+    - name: Ensure ~/.config exists
+      file:
+        path: "/home/{{ eeepc_user }}/.config"
+        state: directory
+        owner: "{{ eeepc_user }}"
+        group: "{{ eeepc_user }}"
+        mode: "0755"
+      become: false
+      tags: [never, awesome]
+
+    - name: Check for dotfiles AwesomeWM config
+      stat:
+        path: "{{ eeepc_dotfiles_path }}/.config/awesome"
+      become: false
+      register: eeepc_dotfiles_awesome
+      tags: [never, awesome]
+
+    - name: Link ~/.config/awesome to dotfiles
+      file:
+        src: "{{ eeepc_dotfiles_path }}/.config/awesome"
+        dest: "/home/{{ eeepc_user }}/.config/awesome"
+        state: link
+        force: true
+        follow: false
+        owner: "{{ eeepc_user }}"
+        group: "{{ eeepc_user }}"
+      when: eeepc_dotfiles_awesome.stat.exists
+      become: false
+      tags: [never, awesome]
+
+    - name: Warn when dotfiles AwesomeWM config is missing
+      debug:
+        msg: "AwesomeWM config not found at {{ eeepc_dotfiles_path }}/.config/awesome; the session will fall back to the stock awesome config."
+      when: not eeepc_dotfiles_awesome.stat.exists
+      tags: [never, awesome]
+
+    - name: Check for dotfiles .Xresources
+      stat:
+        path: "{{ eeepc_dotfiles_path }}/.Xresources"
+      become: false
+      register: eeepc_dotfiles_xresources
+      tags: [never, xresources]
+
+    - name: Link ~/.Xresources to dotfiles
+      file:
+        src: "{{ eeepc_dotfiles_path }}/.Xresources"
+        dest: "/home/{{ eeepc_user }}/.Xresources"
+        state: link
+        force: true
+        follow: false
+        owner: "{{ eeepc_user }}"
+        group: "{{ eeepc_user }}"
+      when: eeepc_dotfiles_xresources.stat.exists
+      become: false
+      tags: [never, xresources]
 
     - name: Disable selected heavyweight or blocking services
       service:
