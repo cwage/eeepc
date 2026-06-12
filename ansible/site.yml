@@ -16,6 +16,12 @@
     - name: Reapply input device hwdb
       command: udevadm trigger --subsystem-match=input --action=change
 
+    - name: Restart zramswap
+      service:
+        name: zramswap
+        state: restarted
+      when: eeepc_zramswap_unit.stat.exists | default(false)
+
   pre_tasks:
     - name: Show target summary
       debug:
@@ -271,6 +277,49 @@
         - Update systemd hwdb
         - Reapply input device hwdb
       tags: [never, keyboard]
+
+    - name: Install daily-driver browser
+      apt:
+        name: "{{ eeepc_browser_packages }}"
+        state: present
+        update_cache: true
+      tags: [never, browser, packages]
+
+    - name: Install zram-tools for compressed RAM swap
+      apt:
+        name: zram-tools
+        state: present
+        update_cache: true
+      tags: [never, zram, packages]
+
+    - name: Configure zramswap
+      copy:
+        dest: /etc/default/zramswap
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          # Managed by the eeepc ansible repo (zram tag). Compressed RAM swap so
+          # the ~1 GB Atom gains headroom before it has to thrash to the slow disk.
+          ALGO={{ eeepc_zram_algo }}
+          PERCENT={{ eeepc_zram_percent }}
+          PRIORITY=100
+      notify: Restart zramswap
+      tags: [never, zram]
+
+    - name: Check whether zramswap service unit is present
+      stat:
+        path: /lib/systemd/system/zramswap.service
+      register: eeepc_zramswap_unit
+      tags: [never, zram]
+
+    - name: Enable and start zramswap
+      service:
+        name: zramswap
+        enabled: true
+        state: started
+      when: eeepc_zramswap_unit.stat.exists
+      tags: [never, zram]
 
     - name: Disable selected heavyweight or blocking services
       service:
