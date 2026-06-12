@@ -10,6 +10,12 @@
       systemd:
         daemon_reload: true
 
+    - name: Update systemd hwdb
+      command: systemd-hwdb update
+
+    - name: Reapply input device hwdb
+      command: udevadm trigger --subsystem-match=input --action=change
+
   pre_tasks:
     - name: Show target summary
       debug:
@@ -231,6 +237,34 @@
       when: eeepc_dotfiles_xresources.stat.exists
       become: false
       tags: [never, xresources]
+
+    - name: Install evdev keyboard remap for the built-in keyboard
+      copy:
+        dest: /etc/udev/hwdb.d/90-eeepc-keyboard.hwdb
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          # ASUS Eee PC 1005HA built-in keyboard (AT Translated Set 2 keyboard).
+          # evdev-level remaps so they apply everywhere -- X session, console VTs,
+          # and early boot -- with no dependence on XKB or per-session config. This
+          # mirrors the hwdb approach used on the workstation (Unicomp), translated
+          # from USB HID usage codes to AT set-1 scancodes for this built-in keyboard.
+          #
+          # AT set-1 scancodes (kernel MSC_SCAN):
+          #   3a = CapsLock   29 = Grave/tilde   01 = Escape   1d = LeftControl
+          #
+          # CapsLock -> Left Control  (no CapsLock remains; left Ctrl stays Ctrl)
+          # Grave    -> Escape        (the key above Tab sends Esc)
+          # Escape   -> Grave         (physical Esc sends ` / ~, preserving a backtick key)
+          evdev:atkbd:dmi:bvn*:bvr*:bd*:svnASUSTeKComputerINC.:pn1005HA:*
+           KEYBOARD_KEY_3a=leftctrl
+           KEYBOARD_KEY_29=esc
+           KEYBOARD_KEY_01=grave
+      notify:
+        - Update systemd hwdb
+        - Reapply input device hwdb
+      tags: [never, keyboard]
 
     - name: Disable selected heavyweight or blocking services
       service:

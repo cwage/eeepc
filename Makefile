@@ -1,4 +1,4 @@
-.PHONY: build shell list-hosts ping preflight check baseline desktop lightdm xsession awesome xresources slim-services run
+.PHONY: build shell list-hosts ping preflight check baseline desktop lightdm xsession awesome xresources keyboard slim-services run
 
 COMPOSE := docker compose run --rm ansible
 PLAYBOOK := ansible/site.yml
@@ -43,6 +43,9 @@ awesome:
 
 xresources:
 	$(COMPOSE) ansible-playbook $(PLAYBOOK) --tags xresources --diff
+
+keyboard:
+	$(COMPOSE) ansible-playbook $(PLAYBOOK) --tags keyboard --diff
 
 slim-services:
 	$(COMPOSE) ansible-playbook $(PLAYBOOK) --tags slim-services --diff
