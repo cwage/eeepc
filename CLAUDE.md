@@ -34,8 +34,9 @@ confusing state. Keep these facts straight:
 
 - **Source of truth for dotfiles is `cwage/dotfiles` on GitHub**, not any local checkout.
   The copy on the *control workstation* (ancient Ubuntu 22) is badly out of date — never
-  base a branch or PR on it. When working dotfiles changes for this machine, clone a fresh
-  copy from GitHub (e.g. into a temp dir) and branch from `origin/master`.
+  base a branch or PR on it. Do dotfiles work on the **laptop's own clone**
+  (`~/git/cwage/dotfiles` on `portajohn`), which is current and is also where changes get
+  tested live (see "Dotfiles Change Workflow" below).
 - The current GitHub dotfiles are **NixOS-flavored** (the thinkpad moved to NixOS in step
   with them). That is why `.xsession.thinkpad` carries Nix runtime paths like
   `/run/current-system/sw/libexec/polkit-gnome-authentication-agent-1`. Do **not** copy
@@ -50,6 +51,27 @@ confusing state. Keep these facts straight:
 - Lock stack follows the old thinkpad Ansible pattern: `xsecurelock` + `xss-lock` (lock on
   suspend) with `xautolock` for idle, rather than `xscreensaver`.
 - The control workstation itself just needs upgrading someday; that is out of scope here.
+
+### Dotfiles Change Workflow
+
+Claude Code cannot run on this hardware (32-bit i386, ~1 GB RAM, no modern Node), so the
+agent operates *on* the laptop over SSH from a control machine. Because the workstation's
+dotfiles clone is stale and the laptop is where changes actually run, do dotfiles work
+**directly on the laptop's clone** rather than juggling a separate copy:
+
+- **Per-host variants, not edits to shared files.** Any change that needs laptop-specific
+  customization goes into a `.eee` variant file (e.g. `.xsession.eee`, and a
+  `.Xresources.eee` / similar if/when needed), mirroring the existing per-host pattern
+  (`.xsession.thinkpad`, `.Xresources.thinkpad`). The eeepc Ansible repo symlinks the
+  `.eee` variant into place, so shared dotfiles stay untouched for other hosts.
+- **Edit and test on the laptop.** Branch and edit in `~/git/cwage/dotfiles` on
+  `portajohn`, then exercise the change in a live session before committing — that clone is
+  the source of truth for the working copy and the test bed in one.
+- **Cut the PR from the laptop.** Its `gh` CLI is authenticated and the dotfiles remote is
+  SSH, so `git push` (via the forwarded agent) and `gh pr create` both work from the
+  laptop. This avoids the stale-workstation-clone trap entirely.
+- The eeepc Ansible repo, by contrast, is a control-plane repo — edit and PR it from the
+  control workstation as usual.
 
 ## Desktop Direction
 
