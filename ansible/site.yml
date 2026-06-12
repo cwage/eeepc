@@ -76,17 +76,29 @@
       notify: Reload systemd
       tags: [never, lightdm]
 
-    - name: Enable LightDM for next boot
-      service:
-        name: lightdm
-        enabled: true
+    - name: Check whether LightDM service unit is present
+      stat:
+        path: /lib/systemd/system/lightdm.service
+      register: eeepc_lightdm_service_unit
       tags: [never, lightdm]
 
-    - name: Disable GDM for next boot
+    - name: Reload systemd before switching display managers
+      meta: flush_handlers
+      tags: [never, lightdm]
+
+    - name: Stop GDM after switching the display-manager alias
       service:
         name: gdm
-        enabled: false
+        state: stopped
       failed_when: false
+      when: eeepc_lightdm_service_unit.stat.exists
+      tags: [never, lightdm]
+
+    - name: Start LightDM display manager
+      service:
+        name: lightdm
+        state: started
+      when: eeepc_lightdm_service_unit.stat.exists
       tags: [never, lightdm]
 
     - name: Install wrapper that runs ~/.xsession through sh
