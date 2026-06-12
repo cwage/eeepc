@@ -10,6 +10,11 @@ eeepc_xsession_source: "{{ eeepc_dotfiles_path }}/.xsession.eee"
 # basename installed under /usr/share/xsessions.
 eeepc_default_session: eeepc-xsession
 
+# Per-host X resources for this hardware (bigger xterm font for the 1024x600
+# panel), kept in dotfiles alongside the other per-host variants
+# (.Xresources.thinkpad, etc.).
+eeepc_xresources_source: "{{ eeepc_dotfiles_path }}/.Xresources.eee"
+
 eeepc_baseline_packages:
   - btop
   - ca-certificates
