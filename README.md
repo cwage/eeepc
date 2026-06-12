@@ -67,7 +67,7 @@ make slim-services
 - `lightdm`: switch the display-manager target to LightDM and pin the default session to the EeePC Xsession.
 - `xsession`: install a login session that runs `~/.xsession` (symlinked to the dotfiles `.xsession.eee`) through `/bin/sh`.
 - `awesome`: symlink `~/.config/awesome` to the dotfiles AwesomeWM config.
-- `xresources`: symlink `~/.Xresources` to the dotfiles X resources.
+- `xresources`: symlink `~/.Xresources` to the per-host dotfiles `.Xresources.eee` (bigger xterm font for the 1024x600 panel).
 - `keyboard`: install an evdev `hwdb` remap for the built-in keyboard (CapsLock→Ctrl, Grave→Esc, Esc→Grave) that applies in X, console VTs, and early boot. Rebuilds the hwdb and re-triggers input devices.
 - `slim-services`: disable obvious boot/runtime waste. Use after reviewing.
 

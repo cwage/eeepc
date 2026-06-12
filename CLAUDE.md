@@ -86,3 +86,4 @@ dotfiles clone is stale and the laptop is where changes actually run, do dotfile
 - Work on branches and open PRs against `main`.
 - Do not push directly to `main`.
 - Keep PRs small enough to test on the laptop after each step.
+- While a PR's branch is unmerged, default to adding related follow-up changes to that same branch additively. Only cut a new branch/PR when the change is clearly unrelated, or when asked.

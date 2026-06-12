@@ -218,16 +218,16 @@
       when: not eeepc_dotfiles_awesome.stat.exists
       tags: [never, awesome]
 
-    - name: Check for dotfiles .Xresources
+    - name: Check for dotfiles .Xresources.eee
       stat:
-        path: "{{ eeepc_dotfiles_path }}/.Xresources"
+        path: "{{ eeepc_xresources_source }}"
       become: false
       register: eeepc_dotfiles_xresources
       tags: [never, xresources]
 
-    - name: Link ~/.Xresources to dotfiles
+    - name: Link ~/.Xresources to the per-host dotfiles variant
       file:
-        src: "{{ eeepc_dotfiles_path }}/.Xresources"
+        src: "{{ eeepc_xresources_source }}"
         dest: "/home/{{ eeepc_user }}/.Xresources"
         state: link
         force: true
@@ -236,6 +236,12 @@
         group: "{{ eeepc_user }}"
       when: eeepc_dotfiles_xresources.stat.exists
       become: false
+      tags: [never, xresources]
+
+    - name: Warn when dotfiles .Xresources.eee is missing
+      debug:
+        msg: "X resources not found at {{ eeepc_xresources_source }}; ~/.Xresources left as-is."
+      when: not eeepc_dotfiles_xresources.stat.exists
       tags: [never, xresources]
 
     - name: Install evdev keyboard remap for the built-in keyboard
