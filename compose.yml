@@ -1,0 +1,18 @@
+services:
+  ansible:
+    build:
+      context: .
+    image: cwage-eeepc-ansible:local
+    user: "${UID:-1000}:${GID:-1000}"
+    working_dir: /workspace
+    network_mode: host
+    environment:
+      ANSIBLE_CONFIG: /workspace/ansible/ansible.cfg
+      HOME: /home/ansible
+      SSH_AUTH_SOCK: /ssh-agent
+    volumes:
+      - .:/workspace
+      - ${HOME}/.ssh:/home/ansible/.ssh:ro
+      - ${SSH_AUTH_SOCK}:/ssh-agent
+    tmpfs:
+      - /tmp

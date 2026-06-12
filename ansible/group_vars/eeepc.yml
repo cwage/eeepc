@@ -1,0 +1,39 @@
+---
+eeepc_user: cwage
+eeepc_dotfiles_path: "/home/{{ eeepc_user }}/git/cwage/dotfiles"
+
+eeepc_baseline_packages:
+  - btop
+  - ca-certificates
+  - curl
+  - git
+  - openssh-server
+  - ripgrep
+  - tmux
+  - vim
+
+eeepc_desktop_packages:
+  - awesome
+  - dbus-x11
+  - feh
+  - network-manager-gnome
+  - policykit-1-gnome
+  - udiskie
+  - volumeicon-alsa
+  - x11-xserver-utils
+  - xautolock
+  - xinit
+  - xscreensaver
+  - xterm
+
+eeepc_lightdm_packages:
+  - lightdm
+  - lightdm-gtk-greeter
+
+eeepc_services_to_disable:
+  - NetworkManager-wait-online.service
+  - plymouth-quit-wait.service
+
+eeepc_services_to_mask:
+  - NetworkManager-wait-online.service
+

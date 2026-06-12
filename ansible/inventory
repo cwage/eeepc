@@ -1,0 +1,7 @@
+[eeepc]
+portajohn ansible_host=10.10.15.234 ansible_user=cwage ansible_python_interpreter=/usr/bin/python3
+
+[eeepc:vars]
+ansible_become=true
+ansible_become_method=sudo
+

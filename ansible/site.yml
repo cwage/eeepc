@@ -1,0 +1,162 @@
+---
+- name: Manage ASUS Eee PC
+  hosts: eeepc
+  gather_facts: true
+  gather_timeout: 30
+  become: true
+
+  handlers:
+    - name: Reload systemd
+      systemd:
+        daemon_reload: true
+
+  pre_tasks:
+    - name: Show target summary
+      debug:
+        msg:
+          - "host={{ inventory_hostname }} ansible_host={{ ansible_host }}"
+          - "distribution={{ ansible_distribution }} {{ ansible_distribution_version }} {{ ansible_distribution_release }}"
+          - "architecture={{ ansible_architecture }} pkg_arch={{ ansible_facts.userspace_architecture | default('unknown') }}"
+          - "kernel={{ ansible_kernel }}"
+      tags: [always]
+
+    - name: Assert this playbook is aimed at Debian i386
+      assert:
+        that:
+          - ansible_distribution == "Debian"
+          - ansible_architecture in ["i386", "i686"]
+        fail_msg: "This repo is intentionally scoped to the Debian i386 EeePC target."
+        success_msg: "Target matches Debian i386 expectations."
+      tags: [always]
+
+  tasks:
+    - name: Install baseline packages
+      apt:
+        name: "{{ eeepc_baseline_packages }}"
+        state: present
+        update_cache: true
+      tags: [never, baseline, packages]
+
+    - name: Ensure SSH service is enabled and running
+      service:
+        name: ssh
+        enabled: true
+        state: started
+      tags: [never, baseline, ssh]
+
+    - name: Install lightweight desktop packages
+      apt:
+        name: "{{ eeepc_desktop_packages }}"
+        state: present
+        update_cache: true
+      tags: [never, desktop, packages]
+
+    - name: Install LightDM packages
+      apt:
+        name: "{{ eeepc_lightdm_packages }}"
+        state: present
+        update_cache: true
+      tags: [never, lightdm, packages]
+
+    - name: Set default display manager file to LightDM
+      copy:
+        dest: /etc/X11/default-display-manager
+        owner: root
+        group: root
+        mode: "0644"
+        content: "/usr/sbin/lightdm\n"
+      tags: [never, lightdm]
+
+    - name: Point systemd display-manager alias at LightDM
+      file:
+        src: /lib/systemd/system/lightdm.service
+        dest: /etc/systemd/system/display-manager.service
+        state: link
+        force: true
+      notify: Reload systemd
+      tags: [never, lightdm]
+
+    - name: Enable LightDM for next boot
+      service:
+        name: lightdm
+        enabled: true
+      tags: [never, lightdm]
+
+    - name: Disable GDM for next boot
+      service:
+        name: gdm
+        enabled: false
+      failed_when: false
+      tags: [never, lightdm]
+
+    - name: Install wrapper that runs ~/.xsession through sh
+      copy:
+        dest: /usr/local/bin/eeepc-xsession
+        owner: root
+        group: root
+        mode: "0755"
+        content: |
+          #!/bin/sh
+          set -eu
+
+          if [ -r "$HOME/.xsession" ]; then
+            exec /bin/sh "$HOME/.xsession"
+          fi
+
+          exec xterm
+      tags: [never, xsession]
+
+    - name: Install LightDM/Xsession desktop entry
+      copy:
+        dest: /usr/share/xsessions/eeepc-xsession.desktop
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          [Desktop Entry]
+          Name=EeePC Xsession
+          Comment=Run ~/.xsession via /usr/local/bin/eeepc-xsession
+          Exec=/usr/local/bin/eeepc-xsession
+          Type=Application
+      tags: [never, xsession]
+
+    - name: Check for dotfiles .xsession
+      stat:
+        path: "{{ eeepc_dotfiles_path }}/.xsession"
+      become: false
+      register: eeepc_dotfiles_xsession
+      tags: [never, xsession]
+
+    - name: Link ~/.xsession to dotfiles
+      file:
+        src: "{{ eeepc_dotfiles_path }}/.xsession"
+        dest: "/home/{{ eeepc_user }}/.xsession"
+        state: link
+        force: true
+        owner: "{{ eeepc_user }}"
+        group: "{{ eeepc_user }}"
+      when: eeepc_dotfiles_xsession.stat.exists
+      tags: [never, xsession]
+
+    - name: Warn when dotfiles .xsession is missing
+      debug:
+        msg: "Dotfiles .xsession not found at {{ eeepc_dotfiles_path }}/.xsession; xsession wrapper will fall back to xterm."
+      when: not eeepc_dotfiles_xsession.stat.exists
+      tags: [never, xsession]
+
+    - name: Disable selected heavyweight or blocking services
+      service:
+        name: "{{ item }}"
+        enabled: false
+        state: stopped
+      loop: "{{ eeepc_services_to_disable }}"
+      failed_when: false
+      tags: [never, slim-services]
+
+    - name: Mask selected blocking services
+      systemd:
+        name: "{{ item }}"
+        masked: true
+      loop: "{{ eeepc_services_to_mask }}"
+      failed_when: false
+      tags: [never, slim-services]
