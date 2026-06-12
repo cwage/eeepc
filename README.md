@@ -54,6 +54,8 @@ make baseline
 make desktop
 make lightdm
 make xsession
+make awesome
+make xresources
 make slim-services
 ```
 
@@ -61,9 +63,20 @@ make slim-services
 
 - `baseline`: small base packages and SSH service sanity.
 - `desktop`: lightweight X11/AwesomeWM package set.
-- `lightdm`: switch the display-manager target to LightDM on next boot.
-- `xsession`: install a login session that runs `~/.xsession` through `/bin/sh`.
+- `lightdm`: switch the display-manager target to LightDM and pin the default session to the EeePC Xsession.
+- `xsession`: install a login session that runs `~/.xsession` (symlinked to the dotfiles `.xsession.eee`) through `/bin/sh`.
+- `awesome`: symlink `~/.config/awesome` to the dotfiles AwesomeWM config.
+- `xresources`: symlink `~/.Xresources` to the dotfiles X resources.
 - `slim-services`: disable obvious boot/runtime waste. Use after reviewing.
+
+## Session Stack
+
+LightDM shows the greeter and defaults to the **EeePC Xsession** entry, which runs
+`/usr/local/bin/eeepc-xsession`. That wrapper execs `~/.xsession` (a symlink to
+`dotfiles/.xsession.eee`) through `/bin/sh`, which self-wraps an `ssh-agent`, starts a
+minimal tray (network, volume, automount), loads `~/.Xresources`, and finally execs
+AwesomeWM using `~/.config/awesome/rc.lua`. The session deliberately omits Electron apps,
+mail bridges, and the emacs daemon that the larger `.xsession` variants carry.
 
 Mutating tasks are tagged with `never`, so a plain `ansible-playbook ansible/site.yml` only runs preflight checks.
 

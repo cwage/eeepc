@@ -2,6 +2,14 @@
 eeepc_user: cwage
 eeepc_dotfiles_path: "/home/{{ eeepc_user }}/git/cwage/dotfiles"
 
+# Pared-down X session script for this hardware, kept in the dotfiles repo
+# alongside the per-host variants (.xsession.thinkpad, etc.).
+eeepc_xsession_source: "{{ eeepc_dotfiles_path }}/.xsession.eee"
+
+# Session that LightDM should select by default, matching the desktop entry
+# basename installed under /usr/share/xsessions.
+eeepc_default_session: eeepc-xsession
+
 eeepc_baseline_packages:
   - btop
   - ca-certificates
@@ -23,7 +31,8 @@ eeepc_desktop_packages:
   - x11-xserver-utils
   - xautolock
   - xinit
-  - xscreensaver
+  - xsecurelock
+  - xss-lock
   - xterm
 
 eeepc_lightdm_packages:

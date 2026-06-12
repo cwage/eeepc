@@ -27,6 +27,30 @@ Use it as a sanity check for architecture, RAM, graphics, wireless, storage, bat
 - Avoid adding external apt repos unless they explicitly support Debian i386 and are worth the cost.
 - Avoid heavyweight daemons and background indexers unless there is a clear need.
 
+## Dotfiles and Pattern Provenance
+
+The dotfiles and reference repos around this project are in a transitional, slightly
+confusing state. Keep these facts straight:
+
+- **Source of truth for dotfiles is `cwage/dotfiles` on GitHub**, not any local checkout.
+  The copy on the *control workstation* (ancient Ubuntu 22) is badly out of date — never
+  base a branch or PR on it. When working dotfiles changes for this machine, clone a fresh
+  copy from GitHub (e.g. into a temp dir) and branch from `origin/master`.
+- The current GitHub dotfiles are **NixOS-flavored** (the thinkpad moved to NixOS in step
+  with them). That is why `.xsession.thinkpad` carries Nix runtime paths like
+  `/run/current-system/sw/libexec/polkit-gnome-authentication-agent-1`. Do **not** copy
+  those runtime paths onto this Debian box — use the Debian equivalents (e.g.
+  `/usr/lib/policykit-1-gnome/polkit-gnome-authentication-agent-1`).
+- **`~/git/cwage/thinkpad` (the old Ansible repo) is the pattern reference** for this
+  repo, even though that physical machine is now NixOS. Mirror its Ansible conventions
+  (tag-gated tasks, dotfile symlinks, lock stack, etc.), translating any runtime specifics
+  to Debian i386.
+- The EeePC's own pared-down session lives in dotfiles as `.xsession.eee`, alongside the
+  per-host variants (`.xsession.thinkpad`, `.Xresources.thinkpad`).
+- Lock stack follows the old thinkpad Ansible pattern: `xsecurelock` + `xss-lock` (lock on
+  suspend) with `xautolock` for idle, rather than `xscreensaver`.
+- The control workstation itself just needs upgrading someday; that is out of scope here.
+
 ## Desktop Direction
 
 - Prefer LightDM + Xorg + AwesomeWM or similarly light X11 sessions.
