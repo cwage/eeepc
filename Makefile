@@ -1,4 +1,4 @@
-.PHONY: build shell list-hosts ping preflight check baseline desktop lightdm xsession awesome xresources keyboard browser zram slim-services run
+.PHONY: build shell list-hosts ping preflight check baseline desktop lightdm xsession awesome xresources keyboard browser zram tuning slim-services run
 
 COMPOSE := docker compose run --rm ansible
 PLAYBOOK := ansible/site.yml
@@ -52,6 +52,9 @@ browser:
 
 zram:
 	$(COMPOSE) ansible-playbook $(PLAYBOOK) --tags zram --diff
+
+tuning:
+	$(COMPOSE) ansible-playbook $(PLAYBOOK) --tags tuning --diff
 
 slim-services:
 	$(COMPOSE) ansible-playbook $(PLAYBOOK) --tags slim-services --diff

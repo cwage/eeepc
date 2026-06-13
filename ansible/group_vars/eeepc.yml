@@ -64,3 +64,24 @@ eeepc_services_to_disable:
 eeepc_services_to_mask:
   - NetworkManager-wait-online.service
 
+# Background maintenance timers masked under the slim-services tag. On this slow
+# Atom they fire apt cache refresh/upgrade and man-db index rebuilds at
+# unpredictable times -- exactly when the machine then feels wedged. Updates are
+# run by hand on this box, so the scheduled triggers are pure overhead.
+eeepc_timers_to_mask:
+  - apt-daily.timer
+  - apt-daily-upgrade.timer
+  - man-db.timer
+
+# Performance tuning (tuning tag). With compressed zram swap at high priority,
+# bias the kernel toward pushing cold anonymous pages into fast RAM-backed swap
+# rather than evicting useful page cache. 100 leans hard on (cheap) zram first.
+eeepc_vm_swappiness: 100
+
+# earlyoom fires a targeted process kill before the kernel OOM killer reacts --
+# on a ~1 GB box the in-kernel killer only steps in after the machine has already
+# thrashed itself into a multi-minute freeze. Prefer killing browsers; never the
+# session essentials. Regexes carry no spaces so systemd word-splitting of
+# $EARLYOOM_ARGS keeps each pattern intact (do not wrap them in inner quotes).
+eeepc_earlyoom_args: "-r 3600 --prefer (^|/)(chromium|chrome|firefox|firefox-esr) --avoid (^|/)(Xorg|awesome|xterm|sshd|systemd|lightdm)$"
+

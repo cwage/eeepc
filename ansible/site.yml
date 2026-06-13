@@ -22,6 +22,12 @@
         state: restarted
       when: eeepc_zramswap_unit.stat.exists | default(false)
 
+    - name: Restart earlyoom
+      service:
+        name: earlyoom
+        state: restarted
+      when: eeepc_earlyoom_unit.stat.exists | default(false)
+
   pre_tasks:
     - name: Show target summary
       debug:
@@ -337,3 +343,59 @@
       loop: "{{ eeepc_services_to_mask }}"
       failed_when: false
       tags: [never, slim-services]
+
+    - name: Mask background maintenance timers
+      systemd:
+        name: "{{ item }}"
+        enabled: false
+        masked: true
+        state: stopped
+      loop: "{{ eeepc_timers_to_mask }}"
+      failed_when: false
+      tags: [never, slim-services]
+
+    - name: Bias the kernel toward zram swap (vm.swappiness)
+      sysctl:
+        name: vm.swappiness
+        value: "{{ eeepc_vm_swappiness }}"
+        sysctl_file: /etc/sysctl.d/99-eeepc-tuning.conf
+        sysctl_set: true
+        state: present
+        reload: true
+      tags: [never, tuning, swappiness]
+
+    - name: Install earlyoom for low-memory protection
+      apt:
+        name: earlyoom
+        state: present
+        update_cache: true
+      tags: [never, tuning, earlyoom, packages]
+
+    - name: Configure earlyoom
+      copy:
+        dest: /etc/default/earlyoom
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          # Managed by the eeepc ansible repo (tuning tag). Kill the biggest memory
+          # hog early, before the kernel OOM killer lets the ~1 GB box thrash into a
+          # freeze. Browsers preferred; session essentials avoided. Patterns hold no
+          # spaces so systemd word-splitting of $EARLYOOM_ARGS keeps them intact.
+          EARLYOOM_ARGS="{{ eeepc_earlyoom_args }}"
+      notify: Restart earlyoom
+      tags: [never, tuning, earlyoom]
+
+    - name: Check whether earlyoom service unit is present
+      stat:
+        path: /lib/systemd/system/earlyoom.service
+      register: eeepc_earlyoom_unit
+      tags: [never, tuning, earlyoom]
+
+    - name: Enable and start earlyoom
+      service:
+        name: earlyoom
+        enabled: true
+        state: started
+      when: eeepc_earlyoom_unit.stat.exists
+      tags: [never, tuning, earlyoom]
