@@ -334,6 +334,13 @@
         update_cache: true
       tags: [never, browser, packages]
 
+    - name: Install console web browsers
+      apt:
+        name: "{{ eeepc_console_browser_packages }}"
+        state: present
+        update_cache: true
+      tags: [never, console-web, packages]
+
     - name: Install zram-tools for compressed RAM swap
       apt:
         name: zram-tools
