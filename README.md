@@ -59,6 +59,7 @@ make xresources
 make keyboard
 make browser
 make zram
+make tuning
 make slim-services
 ```
 
@@ -73,7 +74,8 @@ make slim-services
 - `keyboard`: install an evdev `hwdb` remap for the built-in keyboard (CapsLock→Ctrl, Grave→Esc, Esc→Grave) that applies in X, console VTs, and early boot. Rebuilds the hwdb and re-triggers input devices.
 - `browser`: install Chromium as the daily-driver GUI browser (the only mainstream extension-capable browser Debian still builds for i386). `firefox-esr` stays installed as a fallback.
 - `zram`: install and configure `zram-tools` for compressed RAM swap (lz4, 50% of RAM), giving the ~1 GB Atom headroom before it thrashes to disk.
-- `slim-services`: disable obvious boot/runtime waste. Use after reviewing.
+- `tuning`: responsiveness tweaks for the constrained hardware -- raise `vm.swappiness` so the kernel prefers the fast compressed zram swap over evicting page cache, and install/configure `earlyoom` to kill a runaway memory hog (browsers preferred) before the box thrashes into a freeze.
+- `slim-services`: disable obvious boot/runtime waste -- mask `NetworkManager-wait-online` (the largest boot delay) and `plymouth-quit-wait`, plus the `apt-daily`/`apt-daily-upgrade`/`man-db` maintenance timers that fire background work at unpredictable times. Use after reviewing.
 
 ## Session Stack
 
