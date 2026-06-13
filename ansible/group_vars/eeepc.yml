@@ -27,6 +27,17 @@ eeepc_w3m_keymap_source: "{{ eeepc_dotfiles_path }}/.w3m/keymap"
 eeepc_browser_packages:
   - chromium
 
+# Console/terminal web browsers for the X-free workflow. w3m is the daily text
+# browser (w3m-img can draw inline images on the framebuffer console, no X);
+# links2 adds a framebuffer graphics mode (`links2 -g -driver fb`); elinks is the
+# nicer pure-text UX (tabs, keybindings). None run JavaScript -- they are for the
+# server-rendered/readable web, with the Chromium session as the break-glass.
+eeepc_console_browser_packages:
+  - w3m
+  - w3m-img
+  - links2
+  - elinks
+
 # Compressed RAM swap (zram-tools) to give the ~1 GB Atom headroom before it
 # thrashes to the slow disk. lz4 keeps compression cheap on the weak N270;
 # PERCENT is the share of RAM the zram device may advertise (real RAM use is
