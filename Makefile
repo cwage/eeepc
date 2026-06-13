@@ -1,4 +1,4 @@
-.PHONY: build shell list-hosts ping preflight check baseline desktop lightdm xsession awesome xresources keyboard browser zram tuning console slim-services run
+.PHONY: build shell list-hosts ping preflight check baseline desktop lightdm xsession awesome xresources w3m keyboard browser zram tuning console slim-services run
 
 COMPOSE := docker compose run --rm ansible
 PLAYBOOK := ansible/site.yml
@@ -43,6 +43,9 @@ awesome:
 
 xresources:
 	$(COMPOSE) ansible-playbook $(PLAYBOOK) --tags xresources --diff
+
+w3m:
+	$(COMPOSE) ansible-playbook $(PLAYBOOK) --tags w3m --diff
 
 keyboard:
 	$(COMPOSE) ansible-playbook $(PLAYBOOK) --tags keyboard --diff
