@@ -28,6 +28,13 @@
         state: restarted
       when: eeepc_earlyoom_unit.stat.exists | default(false)
 
+    - name: Apply console font
+      command: setupcon --force --save
+
+    - name: Apply console palette
+      command: setvtrgb /etc/eeepc-console-palette
+      when: eeepc_console_unit.stat.exists | default(false)
+
   pre_tasks:
     - name: Show target summary
       debug:
@@ -399,3 +406,72 @@
         state: started
       when: eeepc_earlyoom_unit.stat.exists
       tags: [never, tuning, earlyoom]
+
+    - name: Set console font face
+      lineinfile:
+        path: /etc/default/console-setup
+        regexp: '^FONTFACE='
+        line: 'FONTFACE="{{ eeepc_console_font_face }}"'
+      notify: Apply console font
+      tags: [never, console]
+
+    - name: Set console font size
+      lineinfile:
+        path: /etc/default/console-setup
+        regexp: '^FONTSIZE='
+        line: 'FONTSIZE="{{ eeepc_console_font_size }}"'
+      notify: Apply console font
+      tags: [never, console]
+
+    - name: Install Solarized-light console palette table
+      copy:
+        dest: /etc/eeepc-console-palette
+        owner: root
+        group: root
+        mode: "0644"
+        # setvtrgb table: three rows (red, green, blue), each 16 comma-separated
+        # values for the 16 console colors. Solarized accents, but slot 0 = base3
+        # off-white (the default background) and slot 7 = #222222 (the default
+        # foreground, matching the xterm). No comments/blank lines -- setvtrgb
+        # parses exactly three numeric rows.
+        content: |
+          253,220,133,181,38,211,42,34,0,203,88,34,131,108,147,253
+          246,50,153,137,139,54,161,34,43,75,110,34,148,113,161,246
+          227,47,0,0,210,130,152,34,54,22,117,34,150,196,161,227
+      notify: Apply console palette
+      tags: [never, console]
+
+    - name: Install console palette service
+      copy:
+        dest: /etc/systemd/system/eeepc-console-colors.service
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          [Unit]
+          Description=Apply Solarized-light console palette (eeepc)
+          Documentation=man:setvtrgb(8)
+          After=systemd-vconsole-setup.service console-setup.service
+          [Service]
+          Type=oneshot
+          RemainAfterExit=yes
+          ExecStart=/usr/bin/setvtrgb /etc/eeepc-console-palette
+          [Install]
+          WantedBy=multi-user.target
+      notify: Reload systemd
+      tags: [never, console]
+
+    - name: Check whether console palette unit is present
+      stat:
+        path: /etc/systemd/system/eeepc-console-colors.service
+      register: eeepc_console_unit
+      tags: [never, console]
+
+    - name: Enable and start console palette service
+      systemd:
+        name: eeepc-console-colors.service
+        enabled: true
+        state: started
+        daemon_reload: true
+      when: eeepc_console_unit.stat.exists
+      tags: [never, console]

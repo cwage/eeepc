@@ -86,3 +86,12 @@ eeepc_vm_swappiness: 100
 # $EARLYOOM_ARGS keeps each pattern intact (do not wrap them in inner quotes).
 eeepc_earlyoom_args: "-r 3600 --prefer (^|/)(chromium|chrome|firefox|firefox-esr) --avoid (^|/)(Xorg|awesome|xterm|sshd|systemd|lightdm)$"
 
+# Text console (VT) theming (console tag). A heavier, larger bitmap font plus a
+# Solarized-light palette so the bare console matches the off-white xterm look
+# and stays readable on the 1024x600 panel. The font goes through Debian's
+# console-setup; FONTFACE/FONTSIZE are the only lines we touch (CODESET, CHARMAP
+# and ACTIVE_CONSOLES are left as-is). TerminusBold is the heaviest stroke the
+# console can do -- it has no antialiasing, so a bold bitmap is as soft as it gets.
+eeepc_console_font_face: TerminusBold
+eeepc_console_font_size: "10x20"
+
