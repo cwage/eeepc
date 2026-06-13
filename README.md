@@ -60,6 +60,7 @@ make keyboard
 make browser
 make zram
 make tuning
+make console
 make slim-services
 ```
 
@@ -75,6 +76,7 @@ make slim-services
 - `browser`: install Chromium as the daily-driver GUI browser (the only mainstream extension-capable browser Debian still builds for i386). `firefox-esr` stays installed as a fallback.
 - `zram`: install and configure `zram-tools` for compressed RAM swap (lz4, 50% of RAM), giving the ~1 GB Atom headroom before it thrashes to disk.
 - `tuning`: responsiveness tweaks for the constrained hardware -- raise `vm.swappiness` so the kernel prefers the fast compressed zram swap over evicting page cache, and install/configure `earlyoom` to kill a runaway memory hog (browsers preferred) before the box thrashes into a freeze.
+- `console`: theme the text consoles (VTs) to match the off-white Solarized xterm look -- a `TerminusBold` 10x20 bitmap font via `console-setup`, plus a Solarized-light palette applied by `setvtrgb` (a oneshot service that sets the kernel default palette, so it covers every VT and survives reboots).
 - `slim-services`: disable obvious boot/runtime waste -- mask `NetworkManager-wait-online` (the largest boot delay) and `plymouth-quit-wait`, plus the `apt-daily`/`apt-daily-upgrade`/`man-db` maintenance timers that fire background work at unpredictable times. Use after reviewing.
 
 ## Session Stack
