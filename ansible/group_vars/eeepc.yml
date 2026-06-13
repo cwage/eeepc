@@ -50,6 +50,7 @@ eeepc_baseline_packages:
   - ca-certificates
   - curl
   - git
+  - htop
   - mosh
   - openssh-server
   - ripgrep
