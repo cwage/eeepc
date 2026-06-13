@@ -15,6 +15,12 @@ eeepc_default_session: eeepc-xsession
 # (.Xresources.thinkpad, etc.).
 eeepc_xresources_source: "{{ eeepc_dotfiles_path }}/.Xresources.eee"
 
+# Shared w3m keymap (vim-style bindings) from the dotfiles repo. Not host-
+# specific, so it is the plain shared file rather than an .eee variant. The w3m
+# tag symlinks it to ~/.w3m/keymap, leaving ~/.w3m itself as the runtime dir for
+# w3m's own cookies/history.
+eeepc_w3m_keymap_source: "{{ eeepc_dotfiles_path }}/.w3m/keymap"
+
 # Daily-driver GUI browser. Chromium is the only mainstream extension-capable
 # browser Debian still builds for i386 (Brave/Chrome ship no 32-bit Linux
 # binaries). Kept as a trial; firefox-esr stays installed as a fallback.

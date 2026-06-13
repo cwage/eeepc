@@ -56,6 +56,7 @@ make lightdm
 make xsession
 make awesome
 make xresources
+make w3m
 make keyboard
 make browser
 make zram
@@ -72,6 +73,7 @@ make slim-services
 - `xsession`: install a login session that runs `~/.xsession` (symlinked to the dotfiles `.xsession.eee`) through `/bin/sh`.
 - `awesome`: symlink `~/.config/awesome` to the dotfiles AwesomeWM config.
 - `xresources`: symlink `~/.Xresources` to the per-host dotfiles `.Xresources.eee` (bigger xterm font for the 1024x600 panel).
+- `w3m`: symlink `~/.w3m/keymap` to the shared dotfiles `.w3m/keymap` (vim-style w3m bindings), leaving `~/.w3m` itself as w3m's runtime dir.
 - `keyboard`: install an evdev `hwdb` remap for the built-in keyboard (CapsLock→Ctrl, Grave→Esc, Esc→Grave) that applies in X, console VTs, and early boot. Rebuilds the hwdb and re-triggers input devices.
 - `browser`: install Chromium as the daily-driver GUI browser (the only mainstream extension-capable browser Debian still builds for i386). `firefox-esr` stays installed as a fallback.
 - `zram`: install and configure `zram-tools` for compressed RAM swap (lz4, 50% of RAM), giving the ~1 GB Atom headroom before it thrashes to disk.

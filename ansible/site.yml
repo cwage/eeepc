@@ -263,6 +263,42 @@
       when: not eeepc_dotfiles_xresources.stat.exists
       tags: [never, xresources]
 
+    - name: Ensure ~/.w3m runtime directory exists
+      file:
+        path: "/home/{{ eeepc_user }}/.w3m"
+        state: directory
+        owner: "{{ eeepc_user }}"
+        group: "{{ eeepc_user }}"
+        mode: "0700"
+      become: false
+      tags: [never, w3m]
+
+    - name: Check for dotfiles .w3m/keymap
+      stat:
+        path: "{{ eeepc_w3m_keymap_source }}"
+      become: false
+      register: eeepc_dotfiles_w3m_keymap
+      tags: [never, w3m]
+
+    - name: Link ~/.w3m/keymap to the dotfiles w3m keymap
+      file:
+        src: "{{ eeepc_w3m_keymap_source }}"
+        dest: "/home/{{ eeepc_user }}/.w3m/keymap"
+        state: link
+        force: true
+        follow: false
+        owner: "{{ eeepc_user }}"
+        group: "{{ eeepc_user }}"
+      when: eeepc_dotfiles_w3m_keymap.stat.exists
+      become: false
+      tags: [never, w3m]
+
+    - name: Warn when dotfiles .w3m/keymap is missing
+      debug:
+        msg: "w3m keymap not found at {{ eeepc_w3m_keymap_source }}; ~/.w3m/keymap left as-is."
+      when: not eeepc_dotfiles_w3m_keymap.stat.exists
+      tags: [never, w3m]
+
     - name: Install evdev keyboard remap for the built-in keyboard
       copy:
         dest: /etc/udev/hwdb.d/90-eeepc-keyboard.hwdb
