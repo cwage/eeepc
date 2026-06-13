@@ -33,6 +33,7 @@ eeepc_baseline_packages:
   - ca-certificates
   - curl
   - git
+  - mosh
   - openssh-server
   - ripgrep
   - tmux
